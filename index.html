@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>omar</title>
+    <title>Devingo App</title>
 
     <style>
         body, html {
@@ -33,14 +33,247 @@
             font-size: 12px;
             font-family: sans-serif;
             color: #fff;
+            pointer-events: none;
         }
+
+        .progress-container {
+            position: absolute;
+            top: 35px; /* 20px أسفل الشريط العلوي */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            background-color: #E5E5E5;
+            height: 16px;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 9998;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #58CC02;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            width: 90%;
+            height: 30%;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            transform: translateY(-100%);
+        }
+
+        @keyframes fillProgress {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .rings-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring {
+            width: 100%;
+            height: 100%;
+            border: 5px solid #d3d3d3;
+            border-radius: 50%;
+            position: absolute;
+            animation: ring-spin 1.5s infinite;
+        }
+
+        @keyframes ring-spin {
+            0% {
+                transform: scale(0.8);
+                border-color: #d3d3d3;
+            }
+            50% {
+                transform: scale(1.1);
+                border-color: #5a5a5a;
+            }
+            100% {
+                transform: scale(0.8);
+                border-color: #d3d3d3;
+            }
+        }
+
+        .ring:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .ring:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .loading-text {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: sans-serif;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .delay-message {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #f00;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            font-family: sans-serif;
+            font-size: 14px;
+            display: none; /* إخفاء الرسالة بشكل افتراضي */
+        }
+
+        .check-button-container {
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.check-button-shadow {
+    background-color: transparent;
+    color: transparent;
+    border: none;
+    border-radius: 15px;
+    padding: 8px 160px;
+    box-shadow: 0 4px 0 #58A700;
+    position: absolute;
+    z-index: -1; /* يجعل الظل في الخلفية */
+    width: 100%;
+    height: 100%;
+    transition: all 0.1s ease;
+}
+
+.check-button-active {
+    background-color: #58CC02;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 8px 160px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.1s ease;
+    outline: none; /* إزالة أي حدود خارجية */
+    white-space: nowrap; /* منع النص من الانتقال إلى سطر جديد */
+    box-shadow: none; /* إزالة أي تأثير ظل */
+    -webkit-tap-highlight-color: transparent; /* إزالة تأثير الضغط على الأجهزة اللمسية */
+    touch-action: manipulation; /* تحسين التفاعل مع اللمس */
+}
+
+.check-button-active:active {
+    transform: translateY(4px);
+    outline: none; /* إزالة أي حدود خارجية عند الضغط */
+}
+
+.check-button-active:focus, 
+.check-button-active:focus-visible {
+    outline: none; /* إزالة أي حدود خارجية عند التركيز */
+    box-shadow: none; /* إزالة أي تأثير ظل عند التركيز */
+}
     </style>
+
+    <script>
+        function animateProgressBar() {
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.animation = 'fillProgress 5s forwards';
+
+            // اختفاء الشريط بعد الوصول إلى 100%
+            setTimeout(() => {
+                document.querySelector('.progress-container').style.display = 'none';
+            }, 5000); // 5 ثواني
+        }
+
+        function checkInternetConnection() {
+            if (!navigator.onLine) {
+                document.body.innerHTML = `
+                    <div style="text-align: center; padding-top: 20%;">
+                        <h1>انت غير متصل بالإنترنت</h1>
+                        <p>الرجاء التحقق من اتصالك وحاول مرة أخرى.</p>
+                        <div class="check-button-container">
+                            <button class="check-button-shadow"></button>
+                            <button class="check-button-active" onclick="retryConnection()">إعادة المحاولة</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function retryConnection() {
+            // تأخير 200 ملي ثانية قبل تنفيذ الكود
+            setTimeout(() => {
+                if (navigator.onLine) {
+                    // إعادة تحميل الصفحة عند وجود اتصال
+                    location.reload();
+                } else {
+                }
+            }, 200); // 200 ملي ثانية
+        }
+
+        function handlePageLoad() {
+            clearTimeout(loadingTimeout);
+            document.getElementById('delayMessage').style.display = 'none';
+            window.removeEventListener('offline', checkInternetConnection);
+            hideLoaderElements(); // إخفاء كل شيء عند اكتمال التحميل
+        }
+
+        function hideLoaderElements() {
+            document.querySelector('.rings-container').style.display = 'none';
+            document.querySelector('.loading-text').style.display = 'none';
+            document.getElementById('delayMessage').style.display = 'none';
+        }
+
+        let loadingTimeout = setTimeout(() => {
+            if (document.getElementById('myFrame').contentWindow.document.readyState !== 'complete') {
+                document.getElementById('delayMessage').style.display = 'block';
+            }
+        }, 5000); // 5 ثوانٍ
+
+        window.addEventListener('load', () => {
+            checkInternetConnection();
+            animateProgressBar();
+        });
+
+        window.addEventListener('offline', checkInternetConnection);
+    </script>
 </head>
 <body>
 
     <div class="overlay">Devingo App...</div>
 
-    <iframe loading="lazy" src="https://omar-faroogs-team-1.adalo.com/online-education-app?_gl=1%2Aniw6fe%2A_ga%2AMTIxNTAxNjU2Mi4xNzI4NTAzMTA2%2A_ga_SWT45DV35L%2AMTcyODU3MDMzNy4yLjEuMTcyODU3NDg2NS40Mi4wLjA.&target=0ugbp7q5hl5hwrfphs2vhtk5k&params=%7B%7D"></iframe>
+    <!-- الشريط الجديد -->
+    <div class="progress-container">
+        <div class="progress-bar"></div>
+    </div>
+
+    <div class="rings-container">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+    </div>
+
+    <div class="loading-text">...جاري التحميل</div>
+
+    <iframe id="myFrame" loading="lazy" src="https://omar-faroogs-team-1.adalo.com/online-education-app?_gl=1%2Aniw6fe%2A_ga%2AMTIxNTAxNjU2Mi4xNzI4NTAzMTA2%2A_ga_SWT45DV3" onload="handlePageLoad()"></iframe>
+
+    <div class="delay-message" id="delayMessage">التحميل يستغرق وقتاً أطول من المعتاد...</div>
 
 </body>
 </html>
